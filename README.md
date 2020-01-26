@@ -2,7 +2,7 @@
 My first Brood War AI! He's not capable of much, but he's mostly functional!
 He is built on BWAPI 4.4.0 as a Client.
 Starcraft Brood War 1.16.1 required.
-**Pre-compiled binary come in _release_ folder.**
+**Pre-compiled binary comes in _release_ folder.**
 
 Boris only knows one thing: 9pool, then swarm the enemy spawn point.
 Boris is not very smart on maps that aren't 1v1. He has a ~100% win rate vs. vanilla Zerg AI, ~70% vs Terran, and absolutely gets dunked on by Protoss, or non-vanilla AI.
