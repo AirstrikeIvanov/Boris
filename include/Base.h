@@ -14,7 +14,10 @@ public:
 	bool spawn;
 	bool owned;
 	bool constructing;
+	bool possible;
 	BWAPI::Unit* mainDepot;
+	BWAPI::Position loc;
+	BWAPI::Unit scout;
 
 private:
 

@@ -6,8 +6,105 @@ void Boris::onFrame()
 {
 	drawInfo();
 
+	//ZLING CODE
+	for (auto u : zerglings)
+	{
+		if (u->getHitPoints() < 12)
+		{
+			u->move(u->getClosestUnit(BWAPI::Filter::IsOwned && BWAPI::Filter::IsBuilding)->getPosition());
+			continue;
+		}
+		if (u->isMoving() && !u->getTarget())
+		{
+			auto t = u->getClosestUnit(BWAPI::Filter::IsEnemy);
+			if (t)
+				u->attack(t);
+			continue;
+		}
+		if (u->getTarget() && u->getTarget()->getType().isBuilding())
+		{
+			auto t = u->getClosestUnit(BWAPI::Filter::IsEnemy && !BWAPI::Filter::IsBuilding);
+			if (t)
+			{
+				if (!t->getType().isWorker())
+				{
+					u->attack(t);
+					continue;
+				}
+				else
+				{
+					u->attack(t);
+					continue;
+				}
+			}
+		}
+		if (u->isIdle())
+		{
+			auto t = u->getClosestUnit(BWAPI::Filter::IsEnemy);
+			if (t && t->getDistance(u) >= 64)
+			{
+				if (t->getType().isBuilding())
+					u->attack(t);
+			}
+			else
+			{
+				if (possible == 1)
+					u->attack(mainEnemyBase);
+				else
+					u->attack(BWAPI::Position(Broodwar->getStartLocations()[0]));
+			}
+		}
+	}
+
+	//automine
+	for (auto& base : baseList)
+	{
+		if (base.second.owned)
+		{
+			for (auto u : base.second.mineralWorkers)
+				if (u->isIdle())
+					if (base.second.minerals.size())
+						u->gather(base.second.minerals[0]);
+			for (auto u : spawnBase->gasWorkers)
+				if (u->isIdle() && base.second.geysers.size())
+					u->gather(base.second.geysers[0]);
+		}
+
+		//scouts
+		if (base.second.possible)
+		{
+			if (base.second.scout == nullptr)
+			{
+				if (availScouts.size())
+				{
+					base.second.scout = availScouts[0];
+					removeFromAvailable(base.second.scout);
+					if (base.second.scout->isIdle())
+						base.second.scout->move(base.second.loc);
+				}
+			}
+			else
+				if (base.second.scout->isIdle())
+					base.second.scout->move(base.second.loc);
+
+		}
+	}
+
 	for (auto u : Broodwar->self()->getUnits())
 	{
+		if (u->getType() == supply)
+		{
+			auto pos = u->getTargetPosition();
+			if (u->getPosition().getDistance(u->getTargetPosition()) <= supply.sightRange())
+			{
+				auto possible = u->getClosestUnit(BWAPI::Filter::IsEnemy && BWAPI::Filter::IsBuilding, supply.sightRange());
+				if (!possible)
+				{
+					removePossibleEnemyLocation(u->getTargetPosition());
+				}
+					
+			}
+		}
 		if (u->getType() == hatch)
 		{
 			if (!hasPool)
@@ -68,16 +165,6 @@ void Boris::onFrame()
 		}
 
 		//HATCH
-		/* if (Broodwar->self()->minerals() >= 600)
-		{
-			if (!startHatch)
-			{
-				buildHatch = Broodwar->getBuildLocation(hatch, findAssignedBase(u, false)->mineralWorkers[1]->getTilePosition(), 64, true);
-				startHatch = true;
-			}
-			findAssignedBase(u, false)->mineralWorkers[1]->build(hatch, buildHatch);
-			break;
-		} */
 		if (findAssignedBase(u, false)->mineralWorkers.size() && !spawnBase->constructing && desHatch > curHatch&& Broodwar->self()->minerals() >= hatch.mineralPrice() && !addingProduction && hasPool)
 		{
 			if (!startHatch)
@@ -89,67 +176,6 @@ void Boris::onFrame()
 			findAssignedBase(u, false)->mineralWorkers[1]->build(hatch, buildHatch);
 		}
 	}
-
-	//SCOUT CODE
-	if (spawns.size() == scouts.size())
-	{
-		if (spawns.size() == 1)
-			scouts[0]->move(BWAPI::Position(spawns[0]));
-		else
-			for (int i = 0; i != spawns.size() - 1; i++)
-				scouts[i]->move(BWAPI::Position(spawns[i]));
-	}
-
-	//ZLING CODE
-	for (auto u : zerglings)
-	{
-		if (u->getHitPoints() < 12)
-		{
-			u->move(u->getClosestUnit(BWAPI::Filter::IsOwned && BWAPI::Filter::IsBuilding)->getPosition());
-			break;
-		}
-		if (u->getTarget() && u->getTarget()->getType().isBuilding())// && (u->isAttacking() || u->isMoving()))
-		{
-			auto t = u->getClosestUnit(BWAPI::Filter::IsEnemy && !BWAPI::Filter::IsBuilding);
-			if (t)
-			{
-				if (!t->getType().isWorker())
-				{
-					u->attack(t);
-				}
-				else
-				{
-					u->attack(t);
-				}
-			}
-		}
-		if (u->isIdle())
-		{
-			auto t = u->getClosestUnit(BWAPI::Filter::IsEnemy);
-			if (t && t->getDistance(u) >= 64)
-			{
-				if (t->getType().isBuilding())
-				u->attack(t);
-			}
-			else u->attack(BWAPI::Position(spawns[0]));
-		}
-	}
-
-	//automine
-	for (auto& base : baseList)
-	{
-		if (base.second.owned)
-		{
-			for (auto u : base.second.mineralWorkers)
-				if (u->isIdle())
-					if (base.second.minerals.size())
-						u->gather(base.second.minerals[0]);
-			for (auto u : spawnBase->gasWorkers)
-				if (u->isIdle() && base.second.geysers.size())
-					u->gather(base.second.geysers[0]);
-		}
-	}
-
 
 	return;
 }
@@ -165,7 +191,8 @@ void Boris::onEnd(bool won)
 
 void Boris::onStart()
 {
-	spawns.clear();
+	found = false;
+	possible = 0;
 	zerglings.clear();
 	minWorkersDesired = 9;
 	gasWorkersDesired = 4;
@@ -181,7 +208,7 @@ void Boris::onStart()
 	addingProduction = false;
 	startPool = false;
 	startHatch = false;
-	scouts.clear();
+	availScouts.clear();
 	prodSupply = 0; 
 	//hatcheries.clear();
 	//mineralWorkers.clear();
@@ -200,10 +227,16 @@ void Boris::onStart()
 	spawnBase->owned = true;
 	for (auto p : Broodwar->getStartLocations())
 		if (p != Broodwar->self()->getStartLocation())
-			spawns.push_back(p);
-	if (spawns.size() != 1)
-		Broodwar->sendText(spawns.size() + " possible enemy spawn locations.");
-	else Broodwar->sendText("This is a two player map, so I already know where you are!");
+		{
+			auto m = Broodwar->getClosestUnit(BWAPI::Position(p), BWAPI::Filter::IsMineralField);
+			if (m)
+			{
+				auto b = findAssignedBase(m, false);
+				b->possible = true;
+				b->loc = BWAPI::Position(p);
+				possible++;
+			}
+		}
 }
 
 void Boris::onMorph(BWAPI::Unit u)
@@ -291,8 +324,7 @@ void Boris::onUnitComplete(BWAPI::Unit u)
 	
 	if (u->getType() == supply)
 	{
-		if (scouts.size() < spawns.size())
-			scouts.push_back(u);
+		availScouts.push_back(u);
 		prodSupply--;
 		if (Broodwar->self()->supplyTotal() >= 200)
 			desHatch = 12;
@@ -418,18 +450,40 @@ void Boris::onUnitDestroy(BWAPI::Unit u)
 			minWorkersDesired = 8;
 			gasWorkersDesired = 4;
 		}
-		for (auto itr = scouts.begin(); itr != scouts.end(); itr++)
+		for (auto itr = availScouts.begin(); itr != availScouts.end(); itr++)
 			if (u == *itr)
 			{
-				scouts.erase(itr);
+				availScouts.erase(itr);
 				return;
 			}
 	}
 }
 
+void Boris::onDiscover(BWAPI::Unit u)
+{
+	if (u->getPlayer() == Broodwar->self())
+		return;
+	if (u->getType().isBuilding() && Broodwar->self()->isEnemy(u->getPlayer()))
+	{
+		auto m = u->getClosestUnit(BWAPI::Filter::IsMineralField);
+		if (m)
+		{
+			auto b = findAssignedBase(m, false);
+			for (auto a : baseList)
+				b->possible = false;
+			b->possible = true;
+			if (!found)
+			{
+				mainEnemyBase = b->loc;
+				found = true;
+			}
+		}
+	}
+}
+
 void Boris::drawInfo()
 {
-	Broodwar->drawText(CoordinateType::Enum::Screen, 2, 0, "Boris v1");
+	Broodwar->drawText(CoordinateType::Enum::Screen, 2, 0, "Boris v2");
 	Broodwar->drawText(CoordinateType::Enum::Screen, 82, 0, "FPS: %d", Broodwar->getFPS());
 	Broodwar->drawText(CoordinateType::Enum::Screen, 2, 10, "Playing on %s", Broodwar->mapName().c_str());
 	if (hasPool)
@@ -437,13 +491,13 @@ void Boris::drawInfo()
 	else Broodwar->drawText(CoordinateType::Enum::Screen, 2, 20, "No spawning pool");
 	Broodwar->drawText(CoordinateType::Enum::Screen, 2, 30, "%d hatcheries, producing %d drones", curHatch, prodDrones);
 	Broodwar->drawText(CoordinateType::Enum::Screen, 2, 40, "%d/%d drones on minerals"/*, %d/%d on gas"*/, totalMinWorkers, minWorkersDesired);// , totalGasWorkers, gasWorkersDesired);
+	if (found)
+		Broodwar->drawText(CoordinateType::Enum::Screen, 2, 50, "Enemy main base located");
+	else Broodwar->drawText(CoordinateType::Enum::Screen, 2, 50, "Possible enemy base locations: %d", possible);
 	if (prodSupply > 0)
-		Broodwar->drawText(CoordinateType::Enum::Screen, 2, 50, "Increasing supply");
+		Broodwar->drawText(CoordinateType::Enum::Screen, 2, 60, "Increasing supply");
 	if (addingProduction)
-		Broodwar->drawText(CoordinateType::Enum::Screen, 2, 60, "Increasing production");
-	if (scouts.size())
-		for (auto u : scouts)
-			Broodwar->drawTextMap(u->getPosition(), "S" );
+		Broodwar->drawText(CoordinateType::Enum::Screen, 2, 70, "Increasing production");
 
 	//Broodwar->drawText(CoordinateType::Enum::Screen, 2, 70, "%d/%d supply", Broodwar->self()->supplyUsed(), Broodwar->self()->supplyTotal());
 }
@@ -525,4 +579,53 @@ void Boris::removeWorker(BWAPI::Unit u)
 				return;
 			}
 	}
+}
+
+void Boris::removePossibleEnemyLocation(BWAPI::Position pos)
+{
+	if (pos == BWAPI::Position(Broodwar->self()->getStartLocation()))
+		return;
+	else
+	{
+		auto b = findAssignedBase(Broodwar->getClosestUnit(pos, BWAPI::Filter::IsMineralField));
+		if (b && b->possible)
+		{
+			//Broodwar << pos << ", " << b->loc << ", " << b->possible << std::endl;
+			b->possible = false;
+			possible--;
+			if (possible == 1 && !found)
+				mainEnemyBase = getFinalPosition();
+			if (b->scout)
+			{
+				b->scout->move(b->scout->getClosestUnit(BWAPI::Filter::IsBuilding && BWAPI::Filter::IsOwned)->getPosition());
+				availScouts.push_back(b->scout);
+				b->scout = nullptr;
+			}
+		}
+	}
+}
+
+void Boris::removeFromAvailable(BWAPI::Unit s)
+{
+	auto itr = availScouts.begin();
+	while (itr != availScouts.end())
+	{
+		if (*itr == s)
+			itr = availScouts.erase(itr);
+		else itr++;
+	}
+}
+
+BWAPI::Position Boris::getFinalPosition()
+{
+	for (auto& b : baseList)
+	{
+		if (b.second.possible)
+		{
+			found = true;
+			return b.second.loc;
+		}
+	}
+	return BWAPI::Positions::None;
+	
 }

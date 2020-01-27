@@ -56,6 +56,9 @@ int main(int argc, const char* argv[])
                     case BWAPI::EventType::UnitMorph:
                         bot.onMorph(e.getUnit());
                         break;
+                    case BWAPI::EventType::UnitDiscover:
+                        bot.onDiscover(e.getUnit());
+                        break;
                     default:
                         break;
                 }
