@@ -5,7 +5,7 @@ Starcraft Brood War 1.16.1 required.
 **Pre-compiled binary comes in _release_ folder.**
 
 Boris only knows one thing: 9pool, then swarm the enemy spawn point.
-Boris is not very smart on maps that aren't 1v1. He has a ~100% win rate vs. vanilla Zerg AI, ~70% vs Terran, and absolutely gets dunked on by Protoss, or non-vanilla AI.
+He is also not very smart on maps that aren't 1v1. He has a ~100% win rate vs. vanilla Zerg AI, ~70% vs Terran, and absolutely gets dunked on by Protoss, or non-vanilla AI.
 
 **Known issues:**
  - Boris might still have some frames where Zerglings are idle, or a building isn't being constructed when it should be.
