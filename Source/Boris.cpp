@@ -9,52 +9,17 @@ void Boris::onFrame()
 	//ZLING CODE
 	for (auto u : zerglings)
 	{
-		if (u->getHitPoints() < 12)
+		auto pos = u->getTargetPosition();
+		if (u->getPosition().getDistance(u->getTargetPosition()) <= supply.sightRange())
 		{
-			u->move(u->getClosestUnit(BWAPI::Filter::IsOwned && BWAPI::Filter::IsBuilding)->getPosition());
-			continue;
+			auto possible = u->getClosestUnit(BWAPI::Filter::IsEnemy && BWAPI::Filter::IsBuilding, supply.sightRange());
+			if (!possible)
+				removePossibleEnemyLocation(u->getTargetPosition());
 		}
-		if (u->isMoving() && !u->getTarget())
-		{
-			auto t = u->getClosestUnit(BWAPI::Filter::IsEnemy);
-			if (t)
-				u->attack(t);
-			continue;
-		}
-		if (u->getTarget() && u->getTarget()->getType().isBuilding())
-		{
-			auto t = u->getClosestUnit(BWAPI::Filter::IsEnemy && !BWAPI::Filter::IsBuilding);
-			if (t)
-			{
-				if (!t->getType().isWorker())
-				{
-					u->attack(t);
-					continue;
-				}
-				else
-				{
-					u->attack(t);
-					continue;
-				}
-			}
-		}
-		if (u->isIdle())
-		{
-			auto t = u->getClosestUnit(BWAPI::Filter::IsEnemy);
-			if (t && t->getDistance(u) >= 64)
-			{
-				if (t->getType().isBuilding())
-					u->attack(t);
-			}
-			else
-			{
-				if (possible == 1)
-					u->attack(mainEnemyBase);
-				else
-					u->attack(BWAPI::Position(Broodwar->getStartLocations()[0]));
-			}
-		}
+
+		processAttack(u);
 	}
+		
 
 	//automine
 	for (auto& base : baseList)
@@ -93,18 +58,7 @@ void Boris::onFrame()
 	for (auto u : Broodwar->self()->getUnits())
 	{
 		if (u->getType() == supply)
-		{
-			auto pos = u->getTargetPosition();
-			if (u->getPosition().getDistance(u->getTargetPosition()) <= supply.sightRange())
-			{
-				auto possible = u->getClosestUnit(BWAPI::Filter::IsEnemy && BWAPI::Filter::IsBuilding, supply.sightRange());
-				if (!possible)
-				{
-					removePossibleEnemyLocation(u->getTargetPosition());
-				}
-					
-			}
-		}
+			checkBaseForEnemy(u);
 		if (u->getType() == hatch)
 		{
 			if (!hasPool)
@@ -165,7 +119,8 @@ void Boris::onFrame()
 		}
 
 		//HATCH
-		if (findAssignedBase(u, false)->mineralWorkers.size() && !spawnBase->constructing && desHatch > curHatch&& Broodwar->self()->minerals() >= hatch.mineralPrice() && !addingProduction && hasPool)
+		auto b = findAssignedBase(u, false);
+		if (b && b->mineralWorkers.size() && !spawnBase->constructing && desHatch > curHatch&& Broodwar->self()->minerals() >= hatch.mineralPrice() && !addingProduction && hasPool)
 		{
 			if (!startHatch)
 			{
@@ -183,14 +138,24 @@ void Boris::onFrame()
 void Boris::onEnd(bool won)
 {
 	if (won)
+	{
+		std::cout << "Victory" << std::endl;
 		Broodwar->sendText("Fear for the swarm!");
-	else Broodwar->sendText("Well then....more zerglings next time?");
+	}
+		
+	else
+	{
+		std::cout << "Defeat" << std::endl;
+		Broodwar->sendText("Well then....more zerglings next time?");
+	}
 }
 
 
 
 void Boris::onStart()
 {
+	if (Broodwar->enemy())
+		enemyRace = Broodwar->enemy()->getRace();
 	found = false;
 	possible = 0;
 	zerglings.clear();
@@ -483,7 +448,7 @@ void Boris::onDiscover(BWAPI::Unit u)
 
 void Boris::drawInfo()
 {
-	Broodwar->drawText(CoordinateType::Enum::Screen, 2, 0, "Boris v2");
+	Broodwar->drawText(CoordinateType::Enum::Screen, 2, 0, "Boris v3");
 	Broodwar->drawText(CoordinateType::Enum::Screen, 82, 0, "FPS: %d", Broodwar->getFPS());
 	Broodwar->drawText(CoordinateType::Enum::Screen, 2, 10, "Playing on %s", Broodwar->mapName().c_str());
 	if (hasPool)
@@ -494,17 +459,22 @@ void Boris::drawInfo()
 	if (found)
 		Broodwar->drawText(CoordinateType::Enum::Screen, 2, 50, "Enemy main base located");
 	else Broodwar->drawText(CoordinateType::Enum::Screen, 2, 50, "Possible enemy base locations: %d", possible);
+	Broodwar->drawText(CoordinateType::Enum::Screen, 2, 60, "Enemy race: %s", enemyRace.c_str());
 	if (prodSupply > 0)
-		Broodwar->drawText(CoordinateType::Enum::Screen, 2, 60, "Increasing supply");
+		Broodwar->drawText(CoordinateType::Enum::Screen, 2, 70, "Increasing supply");
 	if (addingProduction)
-		Broodwar->drawText(CoordinateType::Enum::Screen, 2, 70, "Increasing production");
+		Broodwar->drawText(CoordinateType::Enum::Screen, 2, 80, "Increasing production");
 
 	//Broodwar->drawText(CoordinateType::Enum::Screen, 2, 70, "%d/%d supply", Broodwar->self()->supplyUsed(), Broodwar->self()->supplyTotal());
 }
 
-Base* Boris::findAssignedBase(BWAPI::Unit u, bool ownedOnly = false)
+Base* Boris::findAssignedBase(BWAPI::Unit r, bool ownedOnly = false)
 {	
-	u = Broodwar->getClosestUnit(u->getPosition(), BWAPI::Filter::IsMineralField);
+	auto u = Broodwar->getClosestUnit(r->getPosition(), BWAPI::Filter::IsMineralField);
+	if (!u)
+		u = Broodwar->getClosestUnit(r->getPosition(), BWAPI::Filter::IsOwned && BWAPI::Filter::IsBuilding);
+	if (!u)
+		u = Broodwar->getClosestUnit(r->getPosition());
 
 	for (auto &base : baseList)
 	{
@@ -597,7 +567,10 @@ void Boris::removePossibleEnemyLocation(BWAPI::Position pos)
 				mainEnemyBase = getFinalPosition();
 			if (b->scout)
 			{
-				b->scout->move(b->scout->getClosestUnit(BWAPI::Filter::IsBuilding && BWAPI::Filter::IsOwned)->getPosition());
+				auto t = b->scout->getClosestUnit(BWAPI::Filter::IsBuilding && BWAPI::Filter::IsOwned);
+				if (t)
+					b->scout->move(t->getPosition());
+				else b->scout->move(BWAPI::Position(Broodwar->self()->getStartLocation()));
 				availScouts.push_back(b->scout);
 				b->scout = nullptr;
 			}
@@ -628,4 +601,69 @@ BWAPI::Position Boris::getFinalPosition()
 	}
 	return BWAPI::Positions::None;
 	
+}
+
+bool Boris::checkBaseForEnemy(BWAPI::Unit u)
+{
+	auto success = false;
+	auto pos = u->getTargetPosition();
+	if (u->getPosition().getDistance(u->getTargetPosition()) <= supply.sightRange())
+	{
+		auto possible = u->getClosestUnit(BWAPI::Filter::IsEnemy && BWAPI::Filter::IsBuilding, supply.sightRange());
+		if (!possible)
+		{
+			removePossibleEnemyLocation(u->getTargetPosition());
+			success = true;
+		}
+	}
+	return success;
+}
+
+void Boris::processAttack(BWAPI::Unit u)
+{
+	if (u->getHitPoints() < 12)
+	{
+		auto t = u->getClosestUnit(BWAPI::Filter::IsOwned && BWAPI::Filter::IsBuilding);
+		if (t)
+			u->move(t->getPosition());
+		else u->move(BWAPI::Position(Broodwar->self()->getStartLocation()));
+	}
+	if (u->isMoving() && !u->getTarget())
+	{
+		auto t = u->getClosestUnit(BWAPI::Filter::IsEnemy);
+		if (t)
+			u->attack(t);
+	}
+	if (u->getTarget() && u->getTarget()->getType().isBuilding())
+	{
+		auto t = u->getClosestUnit(BWAPI::Filter::IsEnemy && BWAPI::Filter::IsBuilding);
+		if (t)
+		{
+			if (!t->getType().isWorker())
+			{
+				u->attack(t);
+				return;
+			}
+			else
+			{
+				u->attack(t);
+				return;
+			}
+		}
+	}
+	if (u->isIdle())
+	{
+		auto t = u->getClosestUnit(BWAPI::Filter::IsEnemy);
+		if (t && t->getDistance(u) >= 64)
+		{
+			if (t->getType().isBuilding())
+				u->attack(t);
+		}
+		else
+		{
+			for (auto& b : baseList)
+				if (b.second.possible)
+					u->attack(b.second.loc);
+		}
+	}
 }

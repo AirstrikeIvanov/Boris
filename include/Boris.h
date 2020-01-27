@@ -19,6 +19,7 @@ public:
 	void removeWorker(BWAPI::Unit u);
 	void removePossibleEnemyLocation(BWAPI::Position pos);
 	void removeFromAvailable(BWAPI::Unit s);
+	void processAttack(BWAPI::Unit u);
 	const BWAPI::UnitType drone = BWAPI::UnitTypes::Zerg_Drone;
 	const BWAPI::UnitType hatch = BWAPI::UnitTypes::Zerg_Hatchery;
 	const BWAPI::UnitType supply = BWAPI::UnitTypes::Zerg_Overlord;
@@ -42,9 +43,10 @@ private:
 	int allLings;
 	int prodSupply;
 	bool found;
+	BWAPI::Race enemyRace;
 	std::vector<BWAPI::Unit> zerglings;
 	BWAPI::TilePosition buildPool, buildHatch;
-	Base* findAssignedBase(BWAPI::Unit u, bool ownedOnly);
+	Base* findAssignedBase(BWAPI::Unit r, bool ownedOnly);
 	std::map<BWAPI::UnitType, std::vector<int>> buildOrder;
 	std::map<BWAPI::UnitType, bool> unitTypes;
 	std::vector<BWAPI::Unit> availScouts;
@@ -54,4 +56,5 @@ private:
 	int getNumOfUnitType(BWAPI::UnitType type);
 	int getNumOfOwnedBases();
 	BWAPI::Position getFinalPosition();
+	bool checkBaseForEnemy(BWAPI::Unit u);
 };
