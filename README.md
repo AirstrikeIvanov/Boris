@@ -27,7 +27,7 @@ He is also not very smart on maps that aren't 1v1. He has a ~100% win rate vs. v
   - updated zergling initial attack code to be more efficient instead of "just go to the first available spawn point"
 
 
-### Thanks to these people from the SSCAIT community for helping me learn C++:**
+### Thanks to these people from the SSCAIT community for helping me learn C++:
  - NiteKat
  - PurpleWave
  - Nathan Roth (Antiga/Iruian)
