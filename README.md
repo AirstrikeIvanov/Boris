@@ -20,10 +20,10 @@ He is also not very smart on maps that aren't 1v1. He has a ~100% win rate vs. v
  - I develop by adding bots to bwapi.sln as new projects, and then making my own repositories afterward. Not sure if this causes issues?
  
  **Changelog:**
- - v1: initial release
- - v2:
-  - updated to scout maps besides 1v1
-  - updated zergling initial attack code to be more efficient instead of "just go to the first available spawn point"
+ v1: initial release
+ v2:
+  -- updated to scout maps besides 1v1
+  -- updated zergling initial attack code to be more efficient instead of "just go to the first available spawn point"
 
 
 **Thanks to these people from the SSCAIT community for helping me learn C++:**
