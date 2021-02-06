@@ -632,7 +632,7 @@ void Boris::processAttack(BWAPI::Unit u)
 	{
 		auto t = u->getClosestUnit(BWAPI::Filter::IsEnemy);
 		if (t)
-			u->attack(t);
+			u->attack(t->getPosition());
 	}
 	if (u->getTarget() && u->getTarget()->getType().isBuilding())
 	{
@@ -641,12 +641,12 @@ void Boris::processAttack(BWAPI::Unit u)
 		{
 			if (!t->getType().isWorker())
 			{
-				u->attack(t);
+				u->attack(t->getPosition());
 				return;
 			}
 			else
 			{
-				u->attack(t);
+				u->attack(t->getPosition());
 				return;
 			}
 		}
@@ -657,7 +657,7 @@ void Boris::processAttack(BWAPI::Unit u)
 		if (t && t->getDistance(u) >= 64)
 		{
 			if (t->getType().isBuilding())
-				u->attack(t);
+				u->attack(t->getPosition());
 		}
 		else
 		{
