@@ -17,7 +17,7 @@ He is also not very smart on maps that aren't 1v1. He has a ~100% win rate vs. v
 ### To compile Boris in Visual Studio:
  - Clone or download [BWAPI 4.4.0](https://bwapi.github.io) first as this is required!
  - Clone or download the repository, and place the folder into your (bwapi install folder)/bwapi
- - Open _Boris.sln_ (or add _Boris.vcxproj_ to your bwapi.sln) (I use Visual Studio 2019, it may not work on older versions)
+ - Add _Boris.vcxproj_ to your existing BWAPI solution, or open it (it will create a new solution) and add the _BWAPIClient_ and _BWAPILib_ projects from BWAPI to it.
 
  - If you don't place this in your BWAPI folder, you will have to make sure all references to BWAPI are accounted for.
  - I develop by adding bots to bwapi.sln as new projects, and then making my own repositories afterward. Not sure if this causes issues?
