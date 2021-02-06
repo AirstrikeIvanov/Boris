@@ -9,6 +9,7 @@
 #include "Boris.h"
 
 using namespace BWAPI;
+using namespace Boris;
 
 void reconnect()
 {
@@ -20,7 +21,7 @@ void reconnect()
 
 int main(int argc, const char* argv[])
 {
-    Boris bot;
+    BorisClient bot;
     std::cout << "Connecting..." << std::endl;;
     reconnect();
     while (true)
