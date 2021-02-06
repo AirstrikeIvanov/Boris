@@ -178,6 +178,9 @@ namespace Boris
 		startHatch = false;
 		availScouts.clear();
 		prodSupply = 0;
+		enemyUnits.clear();
+		neutralUnits.clear();
+		friendlyUnits.clear();
 		//hatcheries.clear();
 		//mineralWorkers.clear();
 		for (const auto& u : Broodwar->getStaticNeutralUnits())
@@ -338,6 +341,7 @@ namespace Boris
 	}
 	void BorisClient::onUnitDestroy(BWAPI::Unit u)
 	{
+		removeFromList(getUnitInfo(u));
 		if (u->getPlayer() != Broodwar->self())
 			return;
 		if (u->getType().isMineralField())
@@ -429,6 +433,16 @@ namespace Boris
 
 	void BorisClient::onDiscover(BWAPI::Unit u)
 	{
+		auto* i = getUnitInfo(u);
+		if (!i)
+		{
+			if (u->getPlayer() == Broodwar->self())
+				friendlyUnits.emplace_back(u);
+			else if (u->getPlayer() == Broodwar->neutral())
+				neutralUnits.emplace_back(u);
+			else enemyUnits.emplace_back(u);
+		}
+		else i->update();
 		if (u->getPlayer() == Broodwar->self())
 			return;
 		if (u->getType().isBuilding() && Broodwar->self()->isEnemy(u->getPlayer()))
@@ -449,26 +463,31 @@ namespace Boris
 		}
 	}
 
+	/// X coordinate is always 2, indentations are 6 and 10
+	/// Y coordinate is always multiple of 10.
 	void BorisClient::drawInfo()
 	{
-		Broodwar->drawText(CoordinateType::Enum::Screen, 2, 0, "Boris v3");
-		Broodwar->drawText(CoordinateType::Enum::Screen, 82, 0, "FPS: %d", Broodwar->getFPS());
-		Broodwar->drawText(CoordinateType::Enum::Screen, 2, 10, "Playing on %s", Broodwar->mapName().c_str());
+		Broodwar->drawTextScreen(2, 0, "%c%s%c vs %c%s",
+			Broodwar->self()->getTextColor(), Broodwar->self()->getName().c_str(), '\001',
+			Broodwar->enemy()->getTextColor(), Broodwar->enemy()->getName().c_str());
+		Broodwar->drawTextScreen(2, 10, "Playing on %s", Broodwar->mapName().c_str());
+		Broodwar->drawTextScreen(2, 20, "Tracked entities: F: %d, N: %d, E: %d",
+			friendlyUnits.size(), neutralUnits.size(), enemyUnits.size());
 		if (hasPool)
-			Broodwar->drawText(CoordinateType::Enum::Screen, 2, 20, "Producing %d zerglings, %d active", prodLings, allLings);
-		else Broodwar->drawText(CoordinateType::Enum::Screen, 2, 20, "No spawning pool");
-		Broodwar->drawText(CoordinateType::Enum::Screen, 2, 30, "%d hatcheries, producing %d drones", curHatch, prodDrones);
-		Broodwar->drawText(CoordinateType::Enum::Screen, 2, 40, "%d/%d drones on minerals"/*, %d/%d on gas"*/, totalMinWorkers, minWorkersDesired);// , totalGasWorkers, gasWorkersDesired);
+			Broodwar->drawTextScreen(2, 30, "Producing %d zerglings, %d active", prodLings, allLings);
+		else Broodwar->drawTextScreen(2, 30, "No spawning pool");
+		Broodwar->drawTextScreen(2, 40, "%d hatcheries, producing %d drones", curHatch, prodDrones);
+		Broodwar->drawTextScreen(2, 50, "%d/%d drones on minerals"/*, %d/%d on gas"*/, totalMinWorkers, minWorkersDesired);// , totalGasWorkers, gasWorkersDesired);
 		if (found)
-			Broodwar->drawText(CoordinateType::Enum::Screen, 2, 50, "Enemy main base located");
-		else Broodwar->drawText(CoordinateType::Enum::Screen, 2, 50, "Possible enemy base locations: %d", possible);
-		Broodwar->drawText(CoordinateType::Enum::Screen, 2, 60, "Enemy race: %s", enemyRace.c_str());
+			Broodwar->drawTextScreen(2, 60, "Enemy main base located");
+		else Broodwar->drawTextScreen(2, 60, "Possible enemy base locations: %d", possible);
+		Broodwar->drawTextScreen(2, 70, "Enemy race: %s", enemyRace.c_str());
 		if (prodSupply > 0)
-			Broodwar->drawText(CoordinateType::Enum::Screen, 2, 70, "Increasing supply");
+			Broodwar->drawTextScreen(2, 80, "Increasing supply");
 		if (addingProduction)
-			Broodwar->drawText(CoordinateType::Enum::Screen, 2, 80, "Increasing production");
+			Broodwar->drawTextScreen(2, 90, "Increasing production");
 
-		//Broodwar->drawText(CoordinateType::Enum::Screen, 2, 70, "%d/%d supply", Broodwar->self()->supplyUsed(), Broodwar->self()->supplyTotal());
+		//Broodwar->drawTextScreen(2, 70, "%d/%d supply", Broodwar->self()->supplyUsed(), Broodwar->self()->supplyTotal());
 	}
 
 	Base* BorisClient::findAssignedBase(BWAPI::Unit r, bool ownedOnly = false)
@@ -669,5 +688,54 @@ namespace Boris
 						u->attack(b.second.loc);
 			}
 		}
+	}
+
+	UnitInfo* BorisClient::getUnitInfo(Unit u)
+	{
+		for (auto& i : friendlyUnits)
+			if (i.unit == u)
+				return &i;
+		for (auto& i : neutralUnits)
+			if (i.unit == u)
+				return &i;
+		for (auto& i : enemyUnits)
+			if (i.unit == u)
+				return &i;
+		return nullptr;
+	}
+
+	bool BorisClient::removeFromList(UnitInfo* u)
+	{
+		auto itr = friendlyUnits.begin();
+		while (itr != friendlyUnits.end())
+		{
+			if (u == &*itr)
+			{
+				friendlyUnits.erase(itr);
+				return true;
+			}
+			else itr++;
+		}
+		itr = neutralUnits.begin();
+		while (itr != neutralUnits.end())
+		{
+			if (u == &*itr)
+			{
+				neutralUnits.erase(itr);
+				return true;
+			}
+			else itr++;
+		}
+		itr = enemyUnits.begin();
+		while (itr != enemyUnits.end())
+		{
+			if (u == &*itr)
+			{
+				enemyUnits.erase(itr);
+				return true;
+			}
+			else itr++;
+		}
+		return false;
 	}
 }

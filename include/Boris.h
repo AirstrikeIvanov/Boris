@@ -4,6 +4,7 @@
 #include <map>
 
 #include "Base.h"
+#include "UnitInfo.h"
 
 namespace Boris
 {
@@ -59,5 +60,8 @@ namespace Boris
 		int getNumOfOwnedBases();
 		BWAPI::Position getFinalPosition();
 		bool checkBaseForEnemy(BWAPI::Unit u);
+		UnitInfo* getUnitInfo(BWAPI::Unit u);
+		std::vector<UnitInfo> friendlyUnits, neutralUnits, enemyUnits;
+		bool removeFromList(UnitInfo* u);
 	};
 }

@@ -8,4 +8,17 @@ namespace Boris
 	{
 
 	}
+
+	bool Base::hasDepot()
+	{
+		/* for (auto* u : BWAPI::Broodwar->getUnitsOnTile((BWAPI::TilePosition)base->Center(), BWAPI::Filter::IsResourceDepot))
+			if (u->getPlayer() == BWAPI::Broodwar->self())
+				return true; */
+		return false;
+	}
+
+	void Base::update()
+	{
+
+	}
 }

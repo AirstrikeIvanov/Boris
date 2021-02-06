@@ -8,6 +8,8 @@ namespace Boris
 	{
 	public:
 		Base();
+		void update();
+		BWAPI::Position text(int x = 0, int y = 0);
 		std::vector<BWAPI::Unit> mineralWorkers;
 		std::vector<BWAPI::Unit> gasWorkers;
 		std::vector<BWAPI::Unit> minerals;
@@ -20,6 +22,8 @@ namespace Boris
 		BWAPI::Unit* mainDepot;
 		BWAPI::Position loc;
 		BWAPI::Unit scout;
+
+		bool hasDepot();
 
 	private:
 
