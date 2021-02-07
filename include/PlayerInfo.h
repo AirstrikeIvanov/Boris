@@ -16,6 +16,7 @@ namespace Boris
 		void update();
 		std::string name = "[Unknown]";
 		BWAPI::Color color = BWAPI::Text::Default;
+		BWAPI::Race race = BWAPI::Races::Unknown;
 		BWAPI::Player player = nullptr;
 		BWAPI::Position mainBase;
 		std::vector<UnitInfo> units, structures;

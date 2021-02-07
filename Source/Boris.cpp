@@ -12,15 +12,15 @@ namespace Boris
 		//ZLING CODE
 		for (auto u : zerglings)
 		{
-			auto pos = u->getTargetPosition();
-			if (u->getPosition().getDistance(u->getTargetPosition()) <= supply.sightRange())
+			//auto pos = u->unit->getTargetPosition();
+			if (u.unit->getPosition().getDistance(u.unit->getTargetPosition()) <= supply.sightRange())
 			{
-				auto possible = u->getClosestUnit(BWAPI::Filter::IsEnemy && BWAPI::Filter::IsBuilding, supply.sightRange());
+				auto possible = u.unit->getClosestUnit(BWAPI::Filter::IsEnemy && BWAPI::Filter::IsBuilding, supply.sightRange());
 				if (!possible)
-					removePossibleEnemyLocation(u->getTargetPosition());
+					removePossibleEnemyLocation(u.unit->getTargetPosition());
 			}
 
-			processAttack(u);
+			processAttack(u.unit);
 		}
 
 
@@ -157,6 +157,10 @@ namespace Boris
 
 	void BorisClient::onStart()
 	{
+		players.clear();
+		for (auto p : Broodwar->enemies())
+			if (p != nullptr)
+				players.push_back(p);
 		if (Broodwar->enemy())
 			enemyRace = Broodwar->enemy()->getRace();
 		found = false;
@@ -341,8 +345,8 @@ namespace Boris
 	}
 	void BorisClient::onUnitDestroy(BWAPI::Unit u)
 	{
-		removeFromList(getUnitInfo(u));
-		if (u->getPlayer() != Broodwar->self())
+		removeFromList(getInfo(u));
+		if (u->getPlayer() != Broodwar->self() || u->getPlayer() != Broodwar->neutral())
 			return;
 		if (u->getType().isMineralField())
 		{
@@ -361,7 +365,7 @@ namespace Boris
 			auto itr = zerglings.begin();
 			while (itr != zerglings.end())
 			{
-				if (*itr == u)
+				if (&*itr == getInfo(u))
 					itr = zerglings.erase(itr);
 				else
 					itr++;
@@ -433,7 +437,7 @@ namespace Boris
 
 	void BorisClient::onDiscover(BWAPI::Unit u)
 	{
-		auto* i = getUnitInfo(u);
+		auto* i = getInfo(u);
 		if (!i)
 		{
 			if (u->getPlayer() == Broodwar->self())
@@ -467,9 +471,13 @@ namespace Boris
 	/// Y coordinate is always multiple of 10.
 	void BorisClient::drawInfo()
 	{
-		Broodwar->drawTextScreen(2, 0, "%c%s%c vs %c%s",
+		if (players.size() == 1)
+			Broodwar->drawTextScreen(2, 0, "%c%s%c vs %c%s (%s)",
+				Broodwar->self()->getTextColor(), Broodwar->self()->getName().c_str(), '\001',
+				players[0].color, players[0].name.c_str(), players[0].race.c_str());
+		else Broodwar->drawTextScreen(2, 0, "%c%s%c vs %d enemies",
 			Broodwar->self()->getTextColor(), Broodwar->self()->getName().c_str(), '\001',
-			Broodwar->enemy()->getTextColor(), Broodwar->enemy()->getName().c_str());
+			players.size());
 		Broodwar->drawTextScreen(2, 10, "Playing on %s", Broodwar->mapName().c_str());
 		Broodwar->drawTextScreen(2, 20, "Tracked entities: F: %d, N: %d, E: %d",
 			friendlyUnits.size(), neutralUnits.size(), enemyUnits.size());
@@ -481,11 +489,23 @@ namespace Boris
 		if (found)
 			Broodwar->drawTextScreen(2, 60, "Enemy main base located");
 		else Broodwar->drawTextScreen(2, 60, "Possible enemy base locations: %d", possible);
-		Broodwar->drawTextScreen(2, 70, "Enemy race: %s", enemyRace.c_str());
 		if (prodSupply > 0)
-			Broodwar->drawTextScreen(2, 80, "Increasing supply");
-		if (addingProduction)
-			Broodwar->drawTextScreen(2, 90, "Increasing production");
+			Broodwar->drawTextScreen(2, 70, "Increasing supply");
+		else if (addingProduction)
+			Broodwar->drawTextScreen(2, 70, "Increasing production");
+		else if (addingProduction && prodSupply > 0)
+			Broodwar->drawTextScreen(2, 70, "Increasing supply and production");
+		else Broodwar->drawTextScreen(2, 70, "Not increasing supply or production");
+		if (players.size() > 1)
+		{
+			int t = 0;
+			Broodwar->drawTextScreen(2, 90, "Player list: ");
+			for (auto p : players)
+			{
+				Broodwar->drawTextScreen(6, 100 + t, "%c%s (%s)", p.color, p.name.c_str(), p.race.c_str());
+				t += 10;
+			}
+		}
 
 		//Broodwar->drawTextScreen(2, 70, "%d/%d supply", Broodwar->self()->supplyUsed(), Broodwar->self()->supplyTotal());
 	}
@@ -553,7 +573,7 @@ namespace Boris
 		return r;
 	}
 
-	void BorisClient::removeWorker(BWAPI::Unit u)
+	bool BorisClient::removeWorker(BWAPI::Unit u)
 	{
 		for (auto& base : baseList)
 		{
@@ -562,14 +582,15 @@ namespace Boris
 				{
 					base.second.mineralWorkers.erase(itr);
 					totalMinWorkers--;
-					return;
+					return true;
 				}
 			for (auto itr = base.second.gasWorkers.begin(); itr != base.second.gasWorkers.end(); itr++)
 				if (u == *itr)
 				{
 					base.second.gasWorkers.erase(itr);
-					return;
+					return true;
 				}
+			return false;
 		}
 	}
 
@@ -600,15 +621,19 @@ namespace Boris
 		}
 	}
 
-	void BorisClient::removeFromAvailable(BWAPI::Unit s)
+	bool BorisClient::removeFromAvailable(BWAPI::Unit s)
 	{
 		auto itr = availScouts.begin();
 		while (itr != availScouts.end())
 		{
 			if (*itr == s)
+			{
 				itr = availScouts.erase(itr);
+				return true;
+			}
 			else itr++;
 		}
+		return false;
 	}
 
 	BWAPI::Position BorisClient::getFinalPosition()
@@ -676,7 +701,7 @@ namespace Boris
 		if (u->isIdle())
 		{
 			auto t = u->getClosestUnit(BWAPI::Filter::IsEnemy);
-			if (t && t->getDistance(u) >= 64)
+			if (t && t->getDistance(u) >= 64 && u->canAttack(t))
 			{
 				if (t->getType().isBuilding())
 					u->attack(t->getPosition());
@@ -690,7 +715,7 @@ namespace Boris
 		}
 	}
 
-	UnitInfo* BorisClient::getUnitInfo(Unit u)
+	UnitInfo* BorisClient::getInfo(Unit u)
 	{
 		for (auto& i : friendlyUnits)
 			if (i.unit == u)
@@ -700,6 +725,14 @@ namespace Boris
 				return &i;
 		for (auto& i : enemyUnits)
 			if (i.unit == u)
+				return &i;
+		return nullptr;
+	}
+
+	PlayerInfo* BorisClient::getInfo(Player p)
+	{
+		for (auto& i : players)
+			if (&*i.player == p)
 				return &i;
 		return nullptr;
 	}

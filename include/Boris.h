@@ -5,6 +5,7 @@
 
 #include "BaseInfo.h"
 #include "UnitInfo.h"
+#include "PlayerInfo.h"
 
 namespace Boris
 {
@@ -19,9 +20,9 @@ namespace Boris
 		void onMorph(BWAPI::Unit u);
 		void onDiscover(BWAPI::Unit u);
 		void drawInfo();
-		void removeWorker(BWAPI::Unit u);
+		bool removeWorker(BWAPI::Unit u);
 		void removePossibleEnemyLocation(BWAPI::Position pos);
-		void removeFromAvailable(BWAPI::Unit s);
+		bool removeFromAvailable(BWAPI::Unit s);
 		void processAttack(BWAPI::Unit u);
 		const BWAPI::UnitType drone = BWAPI::UnitTypes::Zerg_Drone;
 		const BWAPI::UnitType hatch = BWAPI::UnitTypes::Zerg_Hatchery;
@@ -47,7 +48,8 @@ namespace Boris
 		int prodSupply;
 		bool found;
 		BWAPI::Race enemyRace;
-		std::vector<BWAPI::Unit> zerglings;
+		//std::vector<BWAPI::Unit> zerglings;
+		std::vector<UnitInfo> zerglings;
 		BWAPI::TilePosition buildPool, buildHatch;
 		BaseInfo* findAssignedBase(BWAPI::Unit r, bool ownedOnly);
 		std::map<BWAPI::UnitType, std::vector<int>> buildOrder;
@@ -60,8 +62,11 @@ namespace Boris
 		int getNumOfOwnedBases();
 		BWAPI::Position getFinalPosition();
 		bool checkBaseForEnemy(BWAPI::Unit u);
-		UnitInfo* getUnitInfo(BWAPI::Unit u);
+		UnitInfo* getInfo(BWAPI::Unit u);
+		PlayerInfo* getInfo(BWAPI::Player p);
 		std::vector<UnitInfo> friendlyUnits, neutralUnits, enemyUnits;
 		bool removeFromList(UnitInfo* u);
+		std::vector<PlayerInfo> players;
+
 	};
 }

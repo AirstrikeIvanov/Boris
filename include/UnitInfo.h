@@ -6,7 +6,7 @@ using namespace BWAPI;
 
 namespace Boris
 {
-	struct UnitInfo
+	class UnitInfo
 	{
 	public:
 		bool isDepot() { return type.isResourceDepot(); }
