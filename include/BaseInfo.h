@@ -4,10 +4,10 @@
 
 namespace Boris
 {
-	struct Base
+	struct BaseInfo
 	{
 	public:
-		Base();
+		BaseInfo();
 		void update();
 		BWAPI::Position text(int x = 0, int y = 0);
 		std::vector<BWAPI::Unit> mineralWorkers;

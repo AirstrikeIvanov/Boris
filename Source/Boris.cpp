@@ -490,7 +490,7 @@ namespace Boris
 		//Broodwar->drawTextScreen(2, 70, "%d/%d supply", Broodwar->self()->supplyUsed(), Broodwar->self()->supplyTotal());
 	}
 
-	Base* BorisClient::findAssignedBase(BWAPI::Unit r, bool ownedOnly = false)
+	BaseInfo* BorisClient::findAssignedBase(BWAPI::Unit r, bool ownedOnly = false)
 	{
 		auto u = Broodwar->getClosestUnit(r->getPosition(), BWAPI::Filter::IsMineralField);
 		if (!u)

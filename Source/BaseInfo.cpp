@@ -1,15 +1,15 @@
-#include "Base.h"
+#include "BaseInfo.h"
 
 using namespace Boris;
 
 namespace Boris
 {
-	Base::Base() : spawn(false), owned(false), constructing(false), possible(false), scout(nullptr)
+	BaseInfo::BaseInfo() : spawn(false), owned(false), constructing(false), possible(false), scout(nullptr)
 	{
 
 	}
 
-	bool Base::hasDepot()
+	bool BaseInfo::hasDepot()
 	{
 		/* for (auto* u : BWAPI::Broodwar->getUnitsOnTile((BWAPI::TilePosition)base->Center(), BWAPI::Filter::IsResourceDepot))
 			if (u->getPlayer() == BWAPI::Broodwar->self())
@@ -17,7 +17,7 @@ namespace Boris
 		return false;
 	}
 
-	void Base::update()
+	void BaseInfo::update()
 	{
 
 	}

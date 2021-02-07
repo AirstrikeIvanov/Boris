@@ -3,7 +3,7 @@
 #include <string>
 #include <map>
 
-#include "Base.h"
+#include "BaseInfo.h"
 #include "UnitInfo.h"
 
 namespace Boris
@@ -30,8 +30,8 @@ namespace Boris
 		const BWAPI::UnitType producer = BWAPI::UnitTypes::Zerg_Spawning_Pool;
 
 	private:
-		std::map<int, Base> baseList;
-		Base* spawnBase;
+		std::map<int, BaseInfo> baseList;
+		BaseInfo* spawnBase;
 		int minWorkersDesired;
 		int totalMinWorkers;
 		int gasWorkersDesired;
@@ -49,7 +49,7 @@ namespace Boris
 		BWAPI::Race enemyRace;
 		std::vector<BWAPI::Unit> zerglings;
 		BWAPI::TilePosition buildPool, buildHatch;
-		Base* findAssignedBase(BWAPI::Unit r, bool ownedOnly);
+		BaseInfo* findAssignedBase(BWAPI::Unit r, bool ownedOnly);
 		std::map<BWAPI::UnitType, std::vector<int>> buildOrder;
 		std::map<BWAPI::UnitType, bool> unitTypes;
 		std::vector<BWAPI::Unit> availScouts;

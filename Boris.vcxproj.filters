@@ -12,10 +12,13 @@
     <ClInclude Include="include\Boris.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Base.h">
+    <ClInclude Include="include\UnitInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\UnitInfo.h">
+    <ClInclude Include="include\BaseInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\PlayerInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -26,10 +29,13 @@
     <ClCompile Include="Source\Boris.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Base.cpp">
+    <ClCompile Include="Source\UnitInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\UnitInfo.cpp">
+    <ClCompile Include="Source\BaseInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\PlayerInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

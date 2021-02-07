@@ -95,14 +95,16 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\Base.h" />
+    <ClInclude Include="include\BaseInfo.h" />
     <ClInclude Include="include\Boris.h" />
+    <ClInclude Include="include\PlayerInfo.h" />
     <ClInclude Include="include\UnitInfo.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\AIClient.cpp" />
-    <ClCompile Include="Source\Base.cpp" />
+    <ClCompile Include="Source\BaseInfo.cpp" />
     <ClCompile Include="Source\Boris.cpp" />
+    <ClCompile Include="Source\PlayerInfo.cpp" />
     <ClCompile Include="Source\UnitInfo.cpp" />
   </ItemGroup>
   <ItemGroup>
