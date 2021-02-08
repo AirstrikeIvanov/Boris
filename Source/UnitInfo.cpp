@@ -7,6 +7,7 @@ namespace Boris
 {
 		UnitInfo::UnitInfo(Unit u)
 		{
+			if (!u) Broodwar << "Error creating unitinfo" << std::endl;
 			unit = u;
 			type = u->getType();
 			health = u->getHitPoints();
@@ -16,6 +17,7 @@ namespace Boris
 			if (type.isResourceContainer())
 				resources = unit->getResources();
 			owner = unit->getPlayer();
+			id = u->getID();
 		}
 
 		void UnitInfo::update()

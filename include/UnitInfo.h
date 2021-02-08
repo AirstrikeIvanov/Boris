@@ -20,13 +20,19 @@ namespace Boris
 		bool isCaster() { return type.isSpellcaster(); }
 
 		UnitInfo(Unit u);
+
+		UnitInfo(const UnitInfo&) = delete;
+		UnitInfo& operator= (const UnitInfo&) = delete;
+
+
 		void update();
 		BWAPI::Position text(int x = 0, int y = 0);
 		BWAPI::Position text(BWAPI::UnitType t, int y = 0);
 		bool canSee(BWAPI::Position t);
+		bool isAssigned = false;
 		Unit unit = nullptr;
 		UnitType type = UnitTypes::Unknown;
-		int health = 0, shields = 0, energy = 0, resources = 0;
+		int id = -1, health = 0, shields = 0, energy = 0, resources = 0;
 		Position position = BWAPI::Positions::None, target = BWAPI::Positions::None;
 		Player owner = nullptr;
 

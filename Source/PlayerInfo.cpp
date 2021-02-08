@@ -7,11 +7,6 @@ namespace Boris
 {
 	PlayerInfo::PlayerInfo(Player p)
 	{
-		if (p == nullptr)
-		{
-			Broodwar << "Error with player tracker" << std::endl;
-			return;
-		}
 		player = p;
 		color = p->getTextColor();
 		name = p->getName();

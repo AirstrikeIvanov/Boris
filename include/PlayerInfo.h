@@ -19,8 +19,8 @@ namespace Boris
 		BWAPI::Race race = BWAPI::Races::Unknown;
 		BWAPI::Player player = nullptr;
 		BWAPI::Position mainBase;
-		std::vector<UnitInfo> units, structures;
-		std::vector<BaseInfo> bases;
+		std::vector<UnitInfo*> units, structures;
+		std::vector<BaseInfo*> bases;
 		bool active = false;
 	};
 }

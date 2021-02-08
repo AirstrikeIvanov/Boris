@@ -97,6 +97,9 @@
   <ItemGroup>
     <ClInclude Include="include\BaseInfo.h" />
     <ClInclude Include="include\Boris.h" />
+    <ClInclude Include="include\Builder.h" />
+    <ClInclude Include="include\Fighter.h" />
+    <ClInclude Include="include\MapInfo.h" />
     <ClInclude Include="include\PlayerInfo.h" />
     <ClInclude Include="include\UnitInfo.h" />
   </ItemGroup>
@@ -104,6 +107,9 @@
     <ClCompile Include="Source\AIClient.cpp" />
     <ClCompile Include="Source\BaseInfo.cpp" />
     <ClCompile Include="Source\Boris.cpp" />
+    <ClCompile Include="Source\Builder.cpp" />
+    <ClCompile Include="Source\Fighter.cpp" />
+    <ClCompile Include="Source\MapInfo.cpp" />
     <ClCompile Include="Source\PlayerInfo.cpp" />
     <ClCompile Include="Source\UnitInfo.cpp" />
   </ItemGroup>
