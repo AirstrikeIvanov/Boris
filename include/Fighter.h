@@ -30,6 +30,7 @@ namespace Boris
 		bool containsUnit(UnitInfo* u);
 		void addToSquad(UnitInfo* u);
 		bool removeFromSquad(UnitInfo* u);
+		UnitType type;
 	};
 
 	struct Fighter
@@ -37,13 +38,14 @@ namespace Boris
 	public:
 		UnitPriorities priorities;
 		std::unordered_map<int, Squad*> squads;
-		BWAPI::Unit getTarget(UnitInfo* u);
-		BWAPI::Unit getTarget(Squad* squad);
+		Unit getTarget(UnitInfo* u, Position t, int radius = 64);
+		Unit getTarget(Squad* squad, Position t, int radius = 64);
 		BWAPI::Position getTargetPos(UnitInfo* u);
 		BWAPI::Position getTargetPos(Squad* squad);
 		BWAPI::Position getTargetFar(UnitInfo* u);
 		BWAPI::Position getTargetFar(Squad* squad);
 		Squad* getSquad(UnitInfo* u);
+		Squad* getSquad(UnitType t);
 		bool assignSquad(UnitInfo* u);
 		//bool removeFromList(Squad* s);
 		void onStart();

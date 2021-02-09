@@ -30,6 +30,7 @@ namespace Boris
 		strength = 0;
 		order = 0;
 		addToSquad(u);
+		type = u->type;
 	}
 
 	bool Squad::containsUnit(UnitInfo* u)
@@ -67,6 +68,7 @@ namespace Boris
 	void Fighter::drawInfo()
 	{
 		Broodwar->drawTextScreen(2, 80, "tmp: %d squads managed", squads.size());
+		if (squads.empty()) return;
 		for(auto& s : squads)
 		{
 			Broodwar->drawTextScreen(2, 90, "Type %s, unitcount %d", ((UnitType)s.first).c_str(), s.second->units.size());
@@ -78,12 +80,42 @@ namespace Boris
 		}
 	}
 
-	Unit Fighter::getTarget(UnitInfo* u)
+	Unit Fighter::getTarget(UnitInfo* u, Position t, int radius)
 	{
-		return nullptr;
+		auto set = Broodwar->getUnitsInRadius(t, radius, BWAPI::Filter::IsEnemy);
+		Unit target = nullptr;
+		for (auto s : set)
+			target = s;
+		for (auto s : set)
+			if (s->getType() != UnitTypes::Terran_Refinery || s->getType() != UnitTypes::Zerg_Extractor || s->getType() != UnitTypes::Protoss_Assimilator ||
+				s->getType() !=  UnitTypes::Zerg_Larva || s->getType() !=  UnitTypes::Zerg_Egg || s->getType() != UnitTypes::Zerg_Lurker_Egg)
+				target = s;
+		for (auto s : set)
+			if (s->getType() == UnitTypes::Terran_Supply_Depot || s->getType() == UnitTypes::Zerg_Overlord || s->getType() == UnitTypes::Protoss_Pylon)
+				target = s;
+		for (auto s : set)
+			if (s->getType().isResourceDepot())
+				target = s;
+		for (auto s : set)
+			if (s->getType().isWorker())
+				target = s;
+		for (auto s : set)
+			if (s->getType().canProduce())
+				target = s;
+		for (auto s : set)
+			if (s->getType() == UnitTypes::Zerg_Hydralisk_Den || s->getType() == UnitTypes::Zerg_Spawning_Pool || s->getType() == UnitTypes::Zerg_Spire || s->getType() == UnitTypes::Zerg_Greater_Spire ||
+				s->getType() == UnitTypes::Protoss_Forge || s->getType() == UnitTypes::Protoss_Cybernetics_Core || s->getType() == UnitTypes::Terran_Academy)
+				target = s;
+		for (auto s : set)
+			if (s->getType() == UnitTypes::Terran_Bunker || s->getType() == UnitTypes::Protoss_Photon_Cannon || s->getType() == UnitTypes::Zerg_Spore_Colony || s->getType() == UnitTypes::Zerg_Creep_Colony || s->getType() == UnitTypes::Zerg_Sunken_Colony)
+				target = s;
+		for (auto s : set)
+			if (s->canAttack(u->unit) && !s->getType().isBuilding())
+				target = s;
+		return target;
 	}
 
-	Unit Fighter::getTarget(Squad* squad)
+	Unit Fighter::getTarget(Squad* squad, Position t, int radius)
 	{
 		return nullptr;
 	}
@@ -112,6 +144,14 @@ namespace Boris
 	{
 		for (auto& s : squads)
 			if (s.first == u->type)
+				return s.second;
+		return nullptr;
+	}
+
+	Squad* Fighter::getSquad(UnitType t)
+	{
+		for (auto& s : squads)
+			if (s.first == t)
 				return s.second;
 		return nullptr;
 	}

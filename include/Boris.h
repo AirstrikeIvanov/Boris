@@ -27,12 +27,16 @@ namespace Boris
 		bool removeWorker(BWAPI::Unit u);
 		void removePossibleEnemyLocation(BWAPI::Position pos);
 		bool removeFromAvailable(BWAPI::Unit s);
-		void processAttack(BWAPI::Unit u);
-		const BWAPI::UnitType drone = BWAPI::UnitTypes::Zerg_Drone;
-		const BWAPI::UnitType hatch = BWAPI::UnitTypes::Zerg_Hatchery;
-		const BWAPI::UnitType supply = BWAPI::UnitTypes::Zerg_Overlord;
-		const BWAPI::UnitType soldier = BWAPI::UnitTypes::Zerg_Zergling;
-		const BWAPI::UnitType producer = BWAPI::UnitTypes::Zerg_Spawning_Pool;
+		void processAttack(UnitInfo* u);
+		const BWAPI::UnitType drone		= BWAPI::UnitTypes::Zerg_Drone;
+		const BWAPI::UnitType hatch		= BWAPI::UnitTypes::Zerg_Hatchery;
+		const BWAPI::UnitType supply	= BWAPI::UnitTypes::Zerg_Overlord;
+		const BWAPI::UnitType ling		= BWAPI::UnitTypes::Zerg_Zergling;
+		const BWAPI::UnitType hydra		= BWAPI::UnitTypes::Zerg_Hydralisk;
+		const BWAPI::UnitType flyer		= BWAPI::UnitTypes::Zerg_Mutalisk;
+		const BWAPI::UnitType pool		= BWAPI::UnitTypes::Zerg_Spawning_Pool;
+		const BWAPI::UnitType spire		= BWAPI::UnitTypes::Zerg_Spire;
+		const BWAPI::UnitType den		= BWAPI::UnitTypes::Zerg_Hydralisk_Den;
 		std::map<int, BaseInfo> baseList;
 
 	private:
