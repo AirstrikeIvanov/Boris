@@ -38,6 +38,7 @@ namespace Boris
 		const BWAPI::UnitType spire		= BWAPI::UnitTypes::Zerg_Spire;
 		const BWAPI::UnitType den		= BWAPI::UnitTypes::Zerg_Hydralisk_Den;
 		std::map<int, BaseInfo> baseList;
+		void onUnitShow(BWAPI::Unit u);
 
 	private:
 		BaseInfo* spawnBase;

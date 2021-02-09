@@ -72,11 +72,15 @@ namespace Boris
 		for(auto& s : squads)
 		{
 			Broodwar->drawTextScreen(2, 90, "Type %s, unitcount %d", ((UnitType)s.first).c_str(), s.second->units.size());
-			for (int i = 0; i > s.second->units.size(); i++)
-				if (i == 0)
-					Broodwar->drawCircleMap(s.second->units[0]->position, 5, Broodwar->self()->getColor());
-					//Broodwar->drawBoxMap(s.second.units[i]->text(), s.second.units[i]->text(s.second.units[i]->type.size()), Broodwar->self()->getColor());
-				else Broodwar->drawLineMap(s.second->units[i]->position, s.second->units[0]->position, BWAPI::Colors::Teal);
+			for (int i = 0; i < s.second->units.size(); i++)
+			{
+				//if (i == 0)
+					//Broodwar->drawCircleMap(s.second->units[0]->position, 5, Broodwar->self()->getColor());
+				//Broodwar->drawBoxMap(s.second.units[i]->text(), s.second.units[i]->text(s.second.units[i]->type.size()), Broodwar->self()->getColor());
+				//else Broodwar->drawLineMap(s.second->units[i]->position, s.second->units[0]->position, BWAPI::Colors::Teal);
+				if (s.second->units[i]->unit->getTarget() || s.second->units[i]->unit->getTargetPosition())
+					Broodwar->drawLineMap(s.second->units[i]->position, s.second->units[i]->unit->getTargetPosition(), Broodwar->self()->getColor());
+			}
 		}
 	}
 
@@ -107,11 +111,12 @@ namespace Boris
 				s->getType() == UnitTypes::Protoss_Forge || s->getType() == UnitTypes::Protoss_Cybernetics_Core || s->getType() == UnitTypes::Terran_Academy)
 				target = s;
 		for (auto s : set)
-			if (s->getType() == UnitTypes::Terran_Bunker || s->getType() == UnitTypes::Protoss_Photon_Cannon || s->getType() == UnitTypes::Zerg_Spore_Colony || s->getType() == UnitTypes::Zerg_Creep_Colony || s->getType() == UnitTypes::Zerg_Sunken_Colony)
+			if (s->getType() == UnitTypes::Terran_Bunker || s->getType() == UnitTypes::Protoss_Photon_Cannon || s->getType() == UnitTypes::Zerg_Spore_Colony || s->getType() == UnitTypes::Zerg_Sunken_Colony)
 				target = s;
 		for (auto s : set)
 			if (s->canAttack(u->unit) && !s->getType().isBuilding())
 				target = s;
+		//Broodwar << "Returning target " << target->getID() << " (" << target->getType().c_str() << ")" << std::endl;
 		return target;
 	}
 

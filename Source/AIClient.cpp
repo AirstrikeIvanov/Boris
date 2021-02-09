@@ -60,6 +60,9 @@ int main(int argc, const char* argv[])
                     case BWAPI::EventType::UnitDiscover:
                         bot.onDiscover(e.getUnit());
                         break;
+                    case BWAPI::EventType::UnitShow:
+                        bot.onUnitShow(e.getUnit());
+                        break;
                     default:
                         break;
                 }
