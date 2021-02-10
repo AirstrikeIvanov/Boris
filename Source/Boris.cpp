@@ -93,7 +93,11 @@ namespace Boris
 							startPool = true;
 						}
 						if (Broodwar->self()->minerals() >= 200)
+						{
 							spawnBase->mineralWorkers[0]->build(pool, buildPool);
+							Broodwar << "Yikes (onFrame)" << std::endl;
+						}
+							
 						break;
 					}
 				}
@@ -391,6 +395,7 @@ namespace Boris
 		{
 			if (u->getType() == pool)
 			{
+				Broodwar << "Yikes" << std::endl;
 				hasPool = false;
 			}
 			for (auto& base : baseList)
@@ -695,8 +700,12 @@ namespace Boris
 			if (t && u->unit->canAttackUnit(t) && u->target.getDistance(t->getPosition()) >= 64)
 			{
 				auto a = fighter.getTarget(u, t->getPosition());
-				if (!a) u->unit->attack(t->getPosition());
-				if (u->position.getDistance(t->getPosition()) <= 64)
+				if (!a)
+				{
+					u->unit->attack(t->getPosition());
+					return;
+				}
+				if (u->position.getDistance(a->getPosition()) <= 64)
 					u->unit->attack(a);
 				else u->unit->attack(a->getPosition());
 				return;
@@ -736,7 +745,11 @@ namespace Boris
 				if (t->getType().isBuilding())
 				{
 					auto a = fighter.getTarget(u, t->getPosition());
-					if (!a) u->unit->attack(t->getPosition());
+					if (!a)
+					{
+						u->unit->attack(t->getPosition());
+						return;
+					}
 					if (u->position.getDistance(t->getPosition()) <= 64)
 						u->unit->attack(a);
 					else u->unit->attack(a->getPosition());
@@ -748,7 +761,13 @@ namespace Boris
 			{
 				for (auto& b : baseList)
 					if (b.second.possible)
-						u->unit->attack(b.second.loc);
+					{
+						if (b.second.loc != BWAPI::Positions::Origin)
+							u->unit->attack(b.second.loc);
+						else if (mainEnemyBase)
+							u->unit->attack(mainEnemyBase);
+						//else Broodwar << Broodwar->getFrameCount() << ": Ignoring location attack since it is (0,0)" << std::endl;
+					}	
 			}
 		}
 	}

@@ -124,7 +124,7 @@ namespace Boris
 		for (auto s : set)
 			if (s->isAttacking() && !s->getType().isBuilding())
 				target = s;
-		//Broodwar << target->getPosition() << std::endl;
+		//if (target) Broodwar << Broodwar->getFrameCount() << ": Returning target " << target->getID() << " (" << target->getType().c_str() << ") at " << target->getPosition() << std::endl;
 		return target;
 	}
 
