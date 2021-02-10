@@ -111,12 +111,20 @@ namespace Boris
 				s->getType() == UnitTypes::Protoss_Forge || s->getType() == UnitTypes::Protoss_Cybernetics_Core || s->getType() == UnitTypes::Terran_Academy)
 				target = s;
 		for (auto s : set)
+			if (s->getType().isBuilding() && s->isConstructing())
+		for (auto s : set)
+			if ((!s->isConstructing() || s->isRepairing()) && s->getType().isWorker())
+				target = s;
+		for (auto s : set)
 			if (s->getType() == UnitTypes::Terran_Bunker || s->getType() == UnitTypes::Protoss_Photon_Cannon || s->getType() == UnitTypes::Zerg_Spore_Colony || s->getType() == UnitTypes::Zerg_Sunken_Colony)
 				target = s;
 		for (auto s : set)
 			if (s->canAttack(u->unit) && !s->getType().isBuilding())
 				target = s;
-		//Broodwar << "Returning target " << target->getID() << " (" << target->getType().c_str() << ")" << std::endl;
+		for (auto s : set)
+			if (s->isAttacking() && !s->getType().isBuilding())
+				target = s;
+		//Broodwar << target->getPosition() << std::endl;
 		return target;
 	}
 

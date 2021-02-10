@@ -694,15 +694,11 @@ namespace Boris
 			auto t = u->unit->getClosestUnit(BWAPI::Filter::IsEnemy);
 			if (t && u->unit->canAttackUnit(t) && u->target.getDistance(t->getPosition()) >= 64)
 			{
-				//Broodwar << Broodwar->getFrameCount() << ": Processing attack for " << u->id << " (" << u->type << ")" << std::endl;
 				auto a = fighter.getTarget(u, t->getPosition());
 				if (!a) u->unit->attack(t->getPosition());
 				if (u->position.getDistance(t->getPosition()) <= 64)
 					u->unit->attack(a);
 				else u->unit->attack(a->getPosition());
-				//if (!a)	u->unit->attack(t->getPosition());
-				//else u->unit->attack(a->getPosition());
-				//u->unit->attack(t->getPosition());
 				return;
 			}
 		} /*
@@ -734,7 +730,6 @@ namespace Boris
 		} */
 		if (u->unit->isIdle())
 		{
-			//Broodwar << Broodwar->getFrameCount() << ": Processing attack for " << u->id << " (" << u->type << ")" << std::endl;
 			auto t = u->unit->getClosestUnit(BWAPI::Filter::IsEnemy);
 			if (t && t->getDistance(u->unit) >= 64 && u->unit->canAttack(t))
 			{
@@ -855,23 +850,8 @@ namespace Boris
 			if (!i->canSee(u->getPosition()) || !i->type.canAttack() || i->isWorker() ||
 				i->unit->isAttackFrame() || i->unit->getTargetPosition())
 				return;
-			Broodwar << "Unit " << i->id << " (" << i->type.c_str() << ") Re-evaluating targets (onUnitShow)" << std::endl;
+			//Broodwar << "Unit " << i->id << " (" << i->type.c_str() << ") Re-evaluating targets (onUnitShow)" << std::endl;
 			processAttack(i);
-			/*
-			auto t = i->unit->getClosestUnit(BWAPI::Filter::IsEnemy);
-			if (t && i->unit->canAttackUnit(t))
-			{
-				auto a = fighter.getTarget(i, t->getPosition());
-				if (!a)
-				{
-					i->unit->attack(t->getPosition());
-					return;
-				}
-				i->unit->attack(a->getPosition());
-				//u->unit->attack(t->getPosition());
-				return;
-			}
-			*/
 		}
 	}
 }
