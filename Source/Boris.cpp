@@ -680,7 +680,7 @@ namespace Boris
 
 	void BorisClient::processAttack(UnitInfo* u)
 	{
-		if (u->unit->isAttackFrame() || u->unit->getTarget())
+		if (u->unit->isAttackFrame() || (u->unit->getTarget() && !u->unit->getTarget()->getType().isBuilding()))
 			return;
 		if (u->unit->getHitPoints() < 12)
 		{
@@ -855,8 +855,8 @@ namespace Boris
 			if (!i->canSee(u->getPosition()) || !i->type.canAttack() || i->isWorker() ||
 				i->unit->isAttackFrame() || i->unit->getTargetPosition())
 				return;
+			Broodwar << "Unit " << i->id << " (" << i->type.c_str() << ") Re-evaluating targets (onUnitShow)" << std::endl;
 			processAttack(i);
-			Broodwar << "Unit " << i->id << " (" << i->type.c_str() << ") Re-evaluating targets" << std::endl;
 			/*
 			auto t = i->unit->getClosestUnit(BWAPI::Filter::IsEnemy);
 			if (t && i->unit->canAttackUnit(t))
