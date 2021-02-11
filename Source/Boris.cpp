@@ -8,14 +8,13 @@ namespace Boris
 	void BorisClient::onFrame()
 	{
 		drawInfo();
-		fighter.drawInfo();
 		
 		for (auto u : Broodwar->getAllUnits())
 		{
 			auto i = getInfo(u);
-			if (!i)
-				i = createUnitInfo(u);
-			i->update();
+			//if (!i)
+				//i = createUnitInfo(u);
+			if (i) i->update();
 		}
 
 		if (fighter.squads.empty()) goto ignoreFighter;
@@ -67,12 +66,14 @@ namespace Boris
 				else
 					if (base.second.scout->isIdle())
 						base.second.scout->move(base.second.loc);
-
 			}
 		}
 
 		for (auto u : Broodwar->self()->getUnits())
 		{
+			if (u->isUnderAttack() && u->canAttack(u->getClosestUnit(BWAPI::Filter::IsEnemy)))
+				processAttack(getInfo(u));
+				//u->attack(u->getClosestUnit(BWAPI::Filter::IsEnemy));
 			if (u->getType() == supply)
 				checkBaseForEnemy(u);
 			if (u->getType() == hatch)
@@ -81,7 +82,6 @@ namespace Boris
 				{
 					if ((getNumOfUnitType(drone) + prodDrones) < 9 && Broodwar->self()->minerals() >= 50)
 					{
-
 						u->train(drone);
 						break;
 					}
@@ -93,10 +93,7 @@ namespace Boris
 							startPool = true;
 						}
 						if (Broodwar->self()->minerals() >= 200)
-						{
 							spawnBase->mineralWorkers[0]->build(pool, buildPool);
-							Broodwar << "Yikes (onFrame)" << std::endl;
-						}
 							
 						break;
 					}
@@ -151,8 +148,6 @@ namespace Boris
 				findAssignedBase(u, false)->mineralWorkers[0]->build(hatch, buildHatch);
 			}
 		}
-
-		return;
 	}
 
 	void BorisClient::onEnd(bool won)
@@ -185,6 +180,7 @@ namespace Boris
 		hydralisks.clear();
 		mutalisks.clear();
 		lurkers.clear();
+		mainEnemyBase = BWAPI::Positions::Unknown;
 		minWorkersDesired = 9;
 		gasWorkersDesired = 4;
 		totalMinWorkers = 0;
@@ -394,10 +390,7 @@ namespace Boris
 		else if (u->getType().isBuilding())
 		{
 			if (u->getType() == pool)
-			{
-				Broodwar << "Yikes" << std::endl;
 				hasPool = false;
-			}
 			for (auto& base : baseList)
 				for (auto itr = base.second.buildings.begin(); itr != base.second.buildings.end(); itr++)
 					if (u == *itr)
@@ -459,9 +452,8 @@ namespace Boris
 	void BorisClient::onDiscover(BWAPI::Unit u)
 	{
 		auto* i = getInfo(u);
-		if (!i)
-			createUnitInfo(u);
-		else i->update();
+		if (!i) i = createUnitInfo(u);
+		i->update();
 		if (u->getPlayer() == Broodwar->self())
 			return;
 		if (u->getType().isBuilding() && Broodwar->self()->isEnemy(u->getPlayer()))
@@ -486,6 +478,7 @@ namespace Boris
 	/// Y coordinate is always multiple of 10.
 	void BorisClient::drawInfo()
 	{
+		//Generic section
 		if (players.size() == 1)
 			Broodwar->drawTextScreen(2, 0, "%c%s%c vs %c%s (%s)",
 				Broodwar->self()->getTextColor(), Broodwar->self()->getName().c_str(), '\001',
@@ -522,7 +515,27 @@ namespace Boris
 			}
 		}
 
-		//Broodwar->drawTextScreen(2, 70, "%d/%d supply", Broodwar->self()->supplyUsed(), Broodwar->self()->supplyTotal());
+		//Unit trackers
+		for (auto& i : friendlyUnits)
+			i->drawBars();
+		for (auto& i : neutralUnits)
+		{
+			if (i->type.isResourceContainer())
+				i->drawBars(false);
+			else
+				i->drawBars();
+		}
+		for (auto& i : enemyUnits)
+		{
+			Broodwar->drawBoxMap(i->text(), i->box(), i->owner->getColor());
+			Broodwar->drawTextMap(i->text(), "%c%s", i->owner->getTextColor(), i->type.c_str());
+		}
+
+		//Map, Builder, fighter and strategy manager subfunctions
+		//map.drawInfo();
+		fighter.drawInfo();
+		//builder.drawInfo();
+		//strategy.drawInfo();
 	}
 
 	BaseInfo* BorisClient::findAssignedBase(BWAPI::Unit r, bool ownedOnly = false)
@@ -699,9 +712,10 @@ namespace Boris
 			auto t = u->unit->getClosestUnit(BWAPI::Filter::IsEnemy);
 			if (t && u->unit->canAttackUnit(t) && u->target.getDistance(t->getPosition()) >= 64)
 			{
-				auto a = fighter.getTarget(u, t->getPosition());
+				auto a = fighter.getTarget(u, enemyUnits, t->getPosition());
 				if (!a)
 				{
+					Broodwar << t->getPosition() << std::endl;
 					u->unit->attack(t->getPosition());
 					return;
 				}
@@ -718,7 +732,7 @@ namespace Boris
 			{
 				if (!t->getType().isWorker())
 				{
-					auto a = fighter.getTarget(u, t->getPosition());
+					auto a = fighter.getTarget(u, enemyUnits, t->getPosition());
 					if (!a) u->unit->attack(t->getPosition());
 					if (u->position.getDistance(t->getPosition()) <= 64)
 						u->unit->attack(a);
@@ -727,7 +741,7 @@ namespace Boris
 				}
 				else
 				{
-					auto a = fighter.getTarget(u, t->getPosition());
+					auto a = fighter.getTarget(u, enemyUnits, t->getPosition());
 					if (!a) u->unit->attack(t->getPosition());
 					if (u->position.getDistance(t->getPosition()) <= 64)
 						u->unit->attack(a);
@@ -744,9 +758,10 @@ namespace Boris
 			{
 				if (t->getType().isBuilding())
 				{
-					auto a = fighter.getTarget(u, t->getPosition());
+					auto a = fighter.getTarget(u, enemyUnits, t->getPosition());
 					if (!a)
 					{
+						Broodwar << t->getPosition() << std::endl;
 						u->unit->attack(t->getPosition());
 						return;
 					}
@@ -764,7 +779,7 @@ namespace Boris
 					{
 						if (b.second.loc != BWAPI::Positions::Origin)
 							u->unit->attack(b.second.loc);
-						else if (mainEnemyBase)
+						else if (mainEnemyBase != BWAPI::Positions::Unknown)
 							u->unit->attack(mainEnemyBase);
 						//else Broodwar << Broodwar->getFrameCount() << ": Ignoring location attack since it is (0,0)" << std::endl;
 					}	
@@ -865,12 +880,22 @@ namespace Boris
 		for (auto s : Broodwar->getUnitsInRadius(u->getPosition(), 99999999, BWAPI::Filter::IsOwned))
 		{
 			auto i = getInfo(s);
-			if (!i) i = createUnitInfo(s);
+			//if (!i) i = createUnitInfo(s);
+			if (!i) return;
 			if (!i->canSee(u->getPosition()) || !i->type.canAttack() || i->isWorker() ||
 				i->unit->isAttackFrame() || i->unit->getTargetPosition())
 				return;
 			//Broodwar << "Unit " << i->id << " (" << i->type.c_str() << ") Re-evaluating targets (onUnitShow)" << std::endl;
 			processAttack(i);
 		}
+	}
+
+	UnitInfo* BorisClient::getClosestUnit(UnitInfo* u, int r, PtrUnitFilter f)
+	{
+		UnitInfo* i = nullptr;
+		auto c = u->unit->getClosestUnit(f, r);
+		i = getInfo(c);
+		//if (!i) i = createUnitInfo(c);
+		return i;
 	}
 }

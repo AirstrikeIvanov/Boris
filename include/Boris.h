@@ -76,7 +76,10 @@ namespace Boris
 		std::vector<UnitInfo*> friendlyUnits, neutralUnits, enemyUnits;
 		bool removeFromList(UnitInfo* u);
 		std::vector<PlayerInfo> players;
+		//MapInfo map;
 		//Builder builder;
 		Fighter fighter;
+		//Strategy strategy;
+		UnitInfo* getClosestUnit(UnitInfo* u, int r = 2147483647, BWAPI::PtrUnitFilter f = nullptr);
 	};
 }

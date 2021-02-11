@@ -20,14 +20,14 @@ namespace Boris
 		bool isCaster() { return type.isSpellcaster(); }
 
 		UnitInfo(Unit u);
-
 		UnitInfo(const UnitInfo&) = delete;
 		UnitInfo& operator= (const UnitInfo&) = delete;
 
-
+		void drawBars(bool unit = true);
 		void update();
 		BWAPI::Position text(int x = 0, int y = 0);
 		BWAPI::Position text(BWAPI::UnitType t, int y = 0);
+		BWAPI::Position box();
 		bool canSee(BWAPI::Position t);
 		bool isAssigned = false;
 		Unit unit = nullptr;

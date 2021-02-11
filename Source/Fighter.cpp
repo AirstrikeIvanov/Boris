@@ -78,57 +78,58 @@ namespace Boris
 					//Broodwar->drawCircleMap(s.second->units[0]->position, 5, Broodwar->self()->getColor());
 				//Broodwar->drawBoxMap(s.second.units[i]->text(), s.second.units[i]->text(s.second.units[i]->type.size()), Broodwar->self()->getColor());
 				//else Broodwar->drawLineMap(s.second->units[i]->position, s.second->units[0]->position, BWAPI::Colors::Teal);
-				if (s.second->units[i]->unit->getTarget() || s.second->units[i]->unit->getTargetPosition())
-					Broodwar->drawLineMap(s.second->units[i]->position, s.second->units[i]->unit->getTargetPosition(), Broodwar->self()->getColor());
+				if (s.second->units[i]->target)
+					Broodwar->drawLineMap(s.second->units[i]->position, s.second->units[i]->target, Broodwar->self()->getColor());
 			}
 		}
 	}
 
-	Unit Fighter::getTarget(UnitInfo* u, Position t, int radius)
+	Unit Fighter::getTarget(UnitInfo* u, std::vector<UnitInfo*> list, Position t, int radius)
 	{
-		auto set = Broodwar->getUnitsInRadius(t, radius, BWAPI::Filter::IsEnemy);
+		//auto set = Broodwar->getUnitsInRadius(t, radius, BWAPI::Filter::IsEnemy);
 		Unit target = nullptr;
-		for (auto s : set)
-			target = s;
-		for (auto s : set)
-			if (s->getType() != UnitTypes::Terran_Refinery || s->getType() != UnitTypes::Zerg_Extractor || s->getType() != UnitTypes::Protoss_Assimilator ||
-				s->getType() !=  UnitTypes::Zerg_Larva || s->getType() !=  UnitTypes::Zerg_Egg || s->getType() != UnitTypes::Zerg_Lurker_Egg)
-				target = s;
-		for (auto s : set)
-			if (s->getType() == UnitTypes::Terran_Supply_Depot || s->getType() == UnitTypes::Zerg_Overlord || s->getType() == UnitTypes::Protoss_Pylon)
-				target = s;
-		for (auto s : set)
-			if (s->getType().isResourceDepot())
-				target = s;
-		for (auto s : set)
-			if (s->getType().isWorker())
-				target = s;
-		for (auto s : set)
-			if (s->getType().canProduce())
-				target = s;
-		for (auto s : set)
-			if (s->getType() == UnitTypes::Zerg_Hydralisk_Den || s->getType() == UnitTypes::Zerg_Spawning_Pool || s->getType() == UnitTypes::Zerg_Spire || s->getType() == UnitTypes::Zerg_Greater_Spire ||
-				s->getType() == UnitTypes::Protoss_Forge || s->getType() == UnitTypes::Protoss_Cybernetics_Core || s->getType() == UnitTypes::Terran_Academy)
-				target = s;
-		for (auto s : set)
-			if (s->getType().isBuilding() && s->isConstructing())
-		for (auto s : set)
-			if ((!s->isConstructing() || s->isRepairing()) && s->getType().isWorker())
-				target = s;
-		for (auto s : set)
-			if (s->getType() == UnitTypes::Terran_Bunker || s->getType() == UnitTypes::Protoss_Photon_Cannon || s->getType() == UnitTypes::Zerg_Spore_Colony || s->getType() == UnitTypes::Zerg_Sunken_Colony)
-				target = s;
-		for (auto s : set)
-			if (s->canAttack(u->unit) && !s->getType().isBuilding())
-				target = s;
-		for (auto s : set)
-			if (s->isAttacking() && !s->getType().isBuilding())
-				target = s;
+		//for (auto s : set)
+		for (auto s : list)
+			target = s->unit;
+		for (auto s : list)
+			if (s->type != UnitTypes::Terran_Refinery || s->type != UnitTypes::Zerg_Extractor || s->type != UnitTypes::Protoss_Assimilator ||
+				s->type !=  UnitTypes::Zerg_Larva || s->type !=  UnitTypes::Zerg_Egg || s->type != UnitTypes::Zerg_Lurker_Egg)
+				target = s->unit;
+		for (auto s : list)
+			if (s->type == UnitTypes::Terran_Supply_Depot || s->type == UnitTypes::Zerg_Overlord || s->type == UnitTypes::Protoss_Pylon)
+				target = s->unit;
+		for (auto s : list)
+			if (s->type.isResourceDepot())
+				target = s->unit;
+		for (auto s : list)
+			if (s->type.isWorker())
+				target = s->unit;
+		for (auto s : list)
+			if (s->type.canProduce())
+				target = s->unit;
+		for (auto s : list)
+			if (s->type == UnitTypes::Zerg_Hydralisk_Den || s->type == UnitTypes::Zerg_Spawning_Pool || s->type == UnitTypes::Zerg_Spire || s->type == UnitTypes::Zerg_Greater_Spire ||
+				s->type == UnitTypes::Protoss_Forge || s->type == UnitTypes::Protoss_Cybernetics_Core || s->type == UnitTypes::Terran_Academy)
+				target = s->unit;
+		for (auto s : list)
+			if (s->type.isBuilding() && s->unit->isConstructing())
+		for (auto s : list)
+			if ((!s->unit->isConstructing() || s->unit->isRepairing()) && s->type.isWorker())
+				target = s->unit;
+		for (auto s : list)
+			if (s->type == UnitTypes::Terran_Bunker || s->type == UnitTypes::Protoss_Photon_Cannon || s->type == UnitTypes::Zerg_Spore_Colony || s->type == UnitTypes::Zerg_Sunken_Colony)
+				target = s->unit;
+		for (auto s : list)
+			if (s->unit->canAttack(u->unit) && !s->type.isBuilding())
+				target = s->unit;
+		for (auto s : list)
+			if (s->unit->isAttacking() && !s->type.isBuilding())
+				target = s->unit;
 		//if (target) Broodwar << Broodwar->getFrameCount() << ": Returning target " << target->getID() << " (" << target->getType().c_str() << ") at " << target->getPosition() << std::endl;
 		return target;
 	}
 
-	Unit Fighter::getTarget(Squad* squad, Position t, int radius)
+	Unit Fighter::getTarget(Squad* squad, std::vector<UnitInfo*> list, Position t, int radius)
 	{
 		return nullptr;
 	}

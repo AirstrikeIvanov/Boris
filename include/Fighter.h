@@ -38,8 +38,8 @@ namespace Boris
 	public:
 		UnitPriorities priorities;
 		std::unordered_map<int, Squad*> squads;
-		Unit getTarget(UnitInfo* u, Position t, int radius = 64);
-		Unit getTarget(Squad* squad, Position t, int radius = 64);
+		Unit getTarget(UnitInfo* u, std::vector<UnitInfo*> list, Position t, int radius = 64);
+		Unit getTarget(Squad* squad, std::vector<UnitInfo*> list, Position t, int radius = 64);
 		BWAPI::Position getTargetPos(UnitInfo* u);
 		BWAPI::Position getTargetPos(Squad* squad);
 		BWAPI::Position getTargetFar(UnitInfo* u);
